@@ -5,21 +5,21 @@ from engine.pieces import Piece, Pawn, Knight, Bishop, Rook, Queen, King
 class Board:
     def __init__(self):
         self._grid: List[List[Optional[Piece]]] = [[None for i in range(8)] for i in range(8)]
-        self.current_turn = Color.White
+        self.current_turn = Color.WHITE
         self.setup_board()
     
     def setup_board(self):
         for col in range(8):
-            self._set_piece(Pawn(Color.Black, Position(1, col)))
-            self._set_piece(Pawn(Color.White, Position(6, col)))
+            self._set_piece(Pawn(Color.BLACK, Position(1, col)))
+            self._set_piece(Pawn(Color.WHITE, Position(6, col)))
 
         def setup_row(color: Color, row: int):
             pieces_layout = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
             for col, piece_class in enumerate(pieces_layout):
                 self._set_piece(piece_class(color, Position(row, col)))
 
-        setup_row(Color.Black, 0)
-        setup_row(Color.White, 7)
+        setup_row(Color.BLACK, 0)
+        setup_row(Color.WHITE, 7)
     
     def _set_piece(self, piece: Piece):
         self._grid[piece.pos.row][piece.pos.col] = piece

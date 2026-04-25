@@ -1,15 +1,15 @@
 
 from dataclasses import dataclass
 from typing import Optional
-from zmq import Enum
+from enum import Enum
 
 
 class Color(Enum):
-    White = 0
-    Black = 1
+    WHITE = 0
+    BLACK = 1
 
-    def opponents(self) -> 'Color':
-        return Color.White if self == Color.Black else Color.Black
+    def opponent(self) -> 'Color':
+        return Color.WHITE if self == Color.BLACK else Color.BLACK
 
 
 @dataclass(frozen=True)
