@@ -1,6 +1,7 @@
 from typing import List, Optional
 from engine.simple_types import Color, Position, Move
 from engine.pieces import Piece, Pawn, Knight, Bishop, Rook, Queen, King
+from engine.exceptions import InvalidMoveError
 
 class Board:
     def __init__(self):
@@ -30,6 +31,9 @@ class Board:
         return self._grid[pos.row][pos.col]
     
     def execute_move(self, move: Move):
+        if move.piece_moved is None:
+            raise InvalidMoveError("Нет фигуры")
+
         self._grid[move.start.row][move.start.col] = None
         self._grid[move.end.row][move.end.col] = move.piece_moved
         
