@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from engine.board import Board
 
 class Piece(ABC):
+    """Базовый абстрактный класс для всех шахматных фигур."""
     def __init__(self, color: Color, pos: Position):
         self.color = color
         self.pos = pos
@@ -13,9 +14,21 @@ class Piece(ABC):
     
     @abstractmethod
     def get_valid_moves(self, board: 'Board') -> List[Move]:
+        """Возвращает список всех возможных ходов для фигуры с учетом состояния доски."""
         pass
 
     def _find_moves(self, board: 'Board', directions: List[tuple[int, int]], slides: int = 8) -> List[Move]:
+        """
+        Универсальный метод для поиска ходов скользящих фигур (Ладья, Слон, Ферзь) и прыгающих (Конь, Король).
+        
+        Args:
+            board: Объект доски.
+            directions: Список направлений (смещений по row, col).
+            slides: Максимальное количество шагов в одном направлении (по умолчанию 8, для короля/коня = 1).
+            
+        Returns:
+            Список валидных ходов (Move).
+        """
         valid_moves = []
         for dr, dc in directions:
             for i in range(1, slides + 1):

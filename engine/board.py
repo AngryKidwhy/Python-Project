@@ -4,6 +4,7 @@ from engine.pieces import Piece, Pawn, Knight, Bishop, Rook, Queen, King
 from engine.exceptions import InvalidMoveError
 
 class Board:
+    """Класс шахматной доски, хранящий состояние игры и управляющий перемещением фигур."""
     def __init__(self):
         self._grid: List[List[Optional[Piece]]] = [[None for i in range(8)] for i in range(8)]
         self.current_turn = Color.WHITE
@@ -26,11 +27,26 @@ class Board:
         self._grid[piece.pos.row][piece.pos.col] = piece
 
     def get_piece_at(self, pos: Position) -> Optional[Piece]:
+        """
+        Возвращает фигуру по заданным координатам.
+        
+        Args:
+            pos: Координаты на доске.
+            
+        Returns:
+            Объект фигуры или None, если клетка пуста/вне доски.
+        """
         if not pos.is_on_board():
             return None
         return self._grid[pos.row][pos.col]
     
     def execute_move(self, move: Move):
+        """
+        Выполняет ход на доске: обновляет сетку и внутреннее состояние фигуры.
+        
+        Args:
+            move: Объект хода, содержащий начальную и конечную позицию.
+        """
         if move.piece_moved is None:
             raise InvalidMoveError("Нет фигуры")
 

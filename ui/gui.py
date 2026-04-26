@@ -15,6 +15,7 @@ COLOR_HIGHLIGHT = pygame.Color("#cdd26a")
 COLOR_MOVE_DOT = pygame.Color("#829769")
 
 class ChessGUI:
+    """Отвечает за графический интерфейс, отрисовку доски и обработку пользовательского ввода."""
     def __init__(self, board: Board):
         self.board = board
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -54,6 +55,12 @@ class ChessGUI:
             pygame.display.flip()
 
     def _handle_click(self, mouse_pos: Tuple[int, int]):
+        """
+        Обрабатывает клик мыши, выделяет фигуры и инициирует выполнение хода.
+
+        Args:
+            mouse_pos: Кортеж с координатами клика (x, y) в пикселях.
+        """
         col = mouse_pos[0] // SQ_SIZE
         row = mouse_pos[1] // SQ_SIZE
         clicked_pos = Position(row, col)
