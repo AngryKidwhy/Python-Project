@@ -40,8 +40,8 @@
 
 **1. Склонируйте репозиторий:**
 ```bash
-git clone <https://github.com/AngryKidwhy/Python-Project.git>
-cd <Python-Project>
+git clone https://github.com/AngryKidwhy/Python-Project.git
+cd Python-Project
 ```
 
 **2. Создайте и активируйте виртуальное окружение:**
