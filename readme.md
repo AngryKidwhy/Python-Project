@@ -35,4 +35,28 @@
 ---
 
 ## Инструкция по запуску
-*(Будет дополнено в Итерации 1)*
+
+Для запуска проекта на вашем компьютере должен быть установлен Python (рекомендуется версия 3.9 и выше).
+
+**1. Склонируйте репозиторий:**
+```bash
+git clone <https://github.com/AngryKidwhy/Python-Project.git>
+cd <Python-Project>
+```
+
+**2. Создайте и активируйте виртуальное окружение:**
+Для macOS / Linux:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+**3. Установите необходимые зависимости:**
+```bash
+pip install -r requirements.txt
+```
+
+**4. Запустите игру:**
+```bash
+python main.py
+```
