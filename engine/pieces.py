@@ -8,9 +8,35 @@ if TYPE_CHECKING:
 class Piece(ABC):
     """Базовый абстрактный класс для всех шахматных фигур."""
     def __init__(self, color: Color, pos: Position):
-        self.color = color
-        self.pos = pos
-        self.has_moved = False
+        self._color = color
+        self._pos = pos
+        self._has_moved = False
+
+    @property
+    def color(self) -> Color:
+        return self._color
+
+    @property
+    def pos(self) -> Position:
+        return self._pos
+
+    @pos.setter
+    def pos(self, value: Position):
+        self._pos = value
+
+    @property
+    def has_moved(self) -> bool:
+        return self._has_moved
+
+    @has_moved.setter
+    def has_moved(self, value: bool):
+        self._has_moved = value
+
+    @property
+    @abstractmethod
+    def char(self) -> str:
+        """Возвращает символьное обозначение фигуры (например, 'N' для коня)."""
+        pass
     
     @abstractmethod
     def get_valid_moves(self, board: 'Board') -> List[Move]:
@@ -18,17 +44,6 @@ class Piece(ABC):
         pass
 
     def _find_moves(self, board: 'Board', directions: List[tuple[int, int]], slides: int = 8) -> List[Move]:
-        """
-        Универсальный метод для поиска ходов скользящих фигур (Ладья, Слон, Ферзь) и прыгающих (Конь, Король).
-        
-        Args:
-            board: Объект доски.
-            directions: Список направлений (смещений по row, col).
-            slides: Максимальное количество шагов в одном направлении (по умолчанию 8, для короля/коня = 1).
-            
-        Returns:
-            Список валидных ходов (Move).
-        """
         valid_moves = []
         for dr, dc in directions:
             for i in range(1, slides + 1):
@@ -48,31 +63,72 @@ class Piece(ABC):
 
 
 class Knight(Piece):
+    """Класс фигуры 'Конь'. Ходит буквой 'Г', может перепрыгивать фигуры."""
+    
+    @property
+    def char(self) -> str:
+        return 'N'
+
     def get_valid_moves(self, board: 'Board') -> List[Move]:
         directions = [(-2, -1), (-2, 1), (2, -1), (2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2)]
         return self._find_moves(board, directions, 1)
 
+
 class Rook(Piece):
+    """Класс фигуры 'Ладья'. Ходит по вертикали и горизонтали."""
+    
+    @property
+    def char(self) -> str:
+        return 'R'
+
     def get_valid_moves(self, board: 'Board') -> List[Move]:
         directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
         return self._find_moves(board, directions)
 
+
 class Bishop(Piece):
+    """Класс фигуры 'Слон'. Ходит по диагоналям."""
+    
+    @property
+    def char(self) -> str:
+        return 'B'
+
     def get_valid_moves(self, board: 'Board') -> List[Move]:
         directions = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
         return self._find_moves(board, directions)
 
+
 class Queen(Piece):
+    """Класс фигуры 'Ферзь'. Ходит по вертикали, горизонтали и диагоналям."""
+    
+    @property
+    def char(self) -> str:
+        return 'Q'
+
     def get_valid_moves(self, board: 'Board') -> List[Move]:
         directions = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
         return self._find_moves(board, directions)
 
+
 class King(Piece):
+    """Класс фигуры 'Король'. Ходит на одну клетку в любом направлении."""
+    
+    @property
+    def char(self) -> str:
+        return 'K'
+
     def get_valid_moves(self, board: 'Board') -> List[Move]:
         directions = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
         return self._find_moves(board, directions, 1)
 
+
 class Pawn(Piece):
+    """Класс фигуры 'Пешка'. Ходит вперед, бьет по диагонали."""
+    
+    @property
+    def char(self) -> str:
+        return 'P'
+
     def get_valid_moves(self, board: 'Board') -> List[Move]:
         moves = []
         dr = -1 if self.color == Color.WHITE else 1

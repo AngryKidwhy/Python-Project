@@ -1,21 +1,15 @@
 import pygame
+import os
 from typing import Optional, Tuple
 from engine.board import Board
 from engine.simple_types import Position, Color
+from engine.exceptions import ResourceLoadError
+from ui.config import WIDTH, HEIGHT, DIMENSION, SQ_SIZE, MAX_FPS, COLOR_LIGHT, COLOR_DARK, COLOR_HIGHLIGHT, COLOR_MOVE_DOT
 
-WIDTH = 512
-HEIGHT = 512
-DIMENSION = 8
-SQ_SIZE = HEIGHT // DIMENSION
-MAX_FPS = 60
-
-COLOR_LIGHT = pygame.Color("#f0d9b5")
-COLOR_DARK = pygame.Color("#b58863")
-COLOR_HIGHLIGHT = pygame.Color("#cdd26a")
-COLOR_MOVE_DOT = pygame.Color("#829769")
 
 class ChessGUI:
     """Отвечает за графический интерфейс, отрисовку доски и обработку пользовательского ввода."""
+    
     def __init__(self, board: Board):
         self.board = board
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -31,14 +25,18 @@ class ChessGUI:
     def _load_images(self):
         pieces = ['wP', 'wR', 'wN', 'wB', 'wQ', 'wK', 'bP', 'bR', 'bN', 'bB', 'bQ', 'bK']
         for piece in pieces:
-            img = pygame.image.load(f"images/{piece}.png").convert_alpha()
-            self.images[piece] = pygame.transform.smoothscale(img, (SQ_SIZE, SQ_SIZE))
+            path = f"images/{piece}.png"
+            if not os.path.exists(path):
+                raise ResourceLoadError(f"Файл изображения {path} не найден!")
+            try:
+                img = pygame.image.load(path).convert_alpha()
+                self.images[piece] = pygame.transform.smoothscale(img, (SQ_SIZE, SQ_SIZE))
+            except pygame.error as e:
+                raise ResourceLoadError(f"Ошибка загрузки {path}: {e}")
 
     def _get_piece_name(self, piece) -> str:
         color_char = 'w' if piece.color == Color.WHITE else 'b'
-        piece_class = piece.__class__.__name__
-        type_char = 'N' if piece_class == "Knight" else piece_class[0]
-        return f"{color_char}{type_char}"
+        return f"{color_char}{piece.char}"
 
     def run(self):
         running = True

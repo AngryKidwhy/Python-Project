@@ -5,3 +5,11 @@ class ChessEngineException(Exception):
 class InvalidMoveError(ChessEngineException):
     """Вызывается при попытке сделать некорректный ход."""
     pass
+
+class InvalidTurnError(ChessEngineException):
+    """Вызывается при попытке сделать ход фигурой не своего цвета."""
+    pass
+
+class ResourceLoadError(ChessEngineException):
+    """Вызывается при ошибке загрузки графических ресурсов."""
+    pass
