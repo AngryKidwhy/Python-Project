@@ -20,7 +20,6 @@ class ChessGUI:
         self.selected_sq: Optional[Position] = None
         self.player_clicks: list[Position] = []
         self.valid_moves = []
-        
         self.promotion_move: Optional[Move] = None
         
         self._load_images()
@@ -47,6 +46,13 @@ class ChessGUI:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_z:
+                        self.board.undo_move()
+                        self.selected_sq = None
+                        self.player_clicks = []
+                        self.valid_moves = []
+                        self.promotion_move = None
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         self._handle_click(pygame.mouse.get_pos())
@@ -63,6 +69,9 @@ class ChessGUI:
         Args:
             mouse_pos: Кортеж с координатами клика (x, y) в пикселях.
         """
+        if self.board.is_checkmate or self.board.is_stalemate:
+            return
+
         x, y = mouse_pos
 
         if self.promotion_move:
@@ -73,7 +82,6 @@ class ChessGUI:
                 
                 final_move = dataclasses.replace(self.promotion_move, promotion_choice=choices[index])
                 self.board.execute_move(final_move)
-                self.board.change_turn()
             
             self.promotion_move = None
             self.selected_sq = None
@@ -97,7 +105,7 @@ class ChessGUI:
             if piece_at_click and piece_at_click.color == self.board.current_turn:
                 self.selected_sq = clicked_pos
                 self.player_clicks = [clicked_pos]
-                self.valid_moves = piece_at_click.get_valid_moves(self.board)
+                self.valid_moves = self.board.get_legal_moves(piece_at_click)
             else:
                 self.selected_sq = None
                 self.player_clicks = []
@@ -113,7 +121,6 @@ class ChessGUI:
                     self.promotion_move = move_to_make
                 else:
                     self.board.execute_move(move_to_make)
-                    self.board.change_turn()
                     self.selected_sq = None
                     self.player_clicks = []
                     self.valid_moves = []
@@ -127,6 +134,7 @@ class ChessGUI:
         self._draw_highlights()
         self._draw_pieces()
         self._draw_promotion_menu()
+        self._draw_game_over()
 
     def _draw_board(self):
         colors = [COLOR_LIGHT, COLOR_DARK]
@@ -177,3 +185,17 @@ class ChessGUI:
                 self.screen.blit(img, rect)
                 if i > 0:
                     pygame.draw.line(self.screen, pygame.Color("black"), (rect.x, rect.y), (rect.x, rect.y + SQ_SIZE), 2)
+
+    def _draw_game_over(self):
+        """Отрисовывает экран конца игры при мате или пате."""
+        if self.board.is_checkmate or self.board.is_stalemate:
+            font = pygame.font.SysFont("Arial", 32, True)
+            text = "Мат!" if self.board.is_checkmate else "Пат!"
+            surface = font.render(text, True, pygame.Color("black"))
+            rect = surface.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+            
+            bg_rect = rect.inflate(20, 20)
+            pygame.draw.rect(self.screen, pygame.Color("white"), bg_rect)
+            pygame.draw.rect(self.screen, pygame.Color("black"), bg_rect, 2)
+            
+            self.screen.blit(surface, rect)

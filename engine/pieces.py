@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Optional
 from engine.simple_types import Color, Position, Move
 
 if TYPE_CHECKING:
@@ -52,12 +52,12 @@ class Piece(ABC):
                 if not to_pos.is_on_board():
                     break
 
-                to_piece: Piece = board.get_piece_at(to_pos)
+                to_piece: Optional[Piece] = board.get_piece_at(to_pos)
                 if to_piece is None:
-                    valid_moves.append(Move(self.pos, to_pos, self))
+                    valid_moves.append(Move(self.pos, to_pos, self, piece_had_moved=self.has_moved))
                 else:
                     if to_piece.color != self.color:
-                        valid_moves.append(Move(self.pos, to_pos, self, to_piece))
+                        valid_moves.append(Move(self.pos, to_pos, self, to_piece, piece_had_moved=self.has_moved))
                     break
         return valid_moves
 
@@ -126,14 +126,14 @@ class King(Piece):
             if isinstance(rook_kingside, Rook) and not rook_kingside.has_moved:
                 if board.get_piece_at(Position(self.pos.row, self.pos.col + 1)) is None and \
                    board.get_piece_at(Position(self.pos.row, self.pos.col + 2)) is None:
-                    moves.append(Move(self.pos, Position(self.pos.row, self.pos.col + 2), self, is_castle=True))
+                    moves.append(Move(self.pos, Position(self.pos.row, self.pos.col + 2), self, is_castle=True, piece_had_moved=self.has_moved, rook_had_moved=rook_kingside.has_moved))
 
             rook_queenside = board.get_piece_at(Position(self.pos.row, self.pos.col - 4))
             if isinstance(rook_queenside, Rook) and not rook_queenside.has_moved:
                 if board.get_piece_at(Position(self.pos.row, self.pos.col - 1)) is None and \
                    board.get_piece_at(Position(self.pos.row, self.pos.col - 2)) is None and \
                    board.get_piece_at(Position(self.pos.row, self.pos.col - 3)) is None:
-                    moves.append(Move(self.pos, Position(self.pos.row, self.pos.col - 2), self, is_castle=True))
+                    moves.append(Move(self.pos, Position(self.pos.row, self.pos.col - 2), self, is_castle=True, piece_had_moved=self.has_moved, rook_had_moved=rook_queenside.has_moved))
 
         return moves
 
@@ -153,12 +153,12 @@ class Pawn(Piece):
         one_step = Position(self.pos.row + dr, self.pos.col)
         if one_step.is_on_board() and board.get_piece_at(one_step) is None:
             is_promo = one_step.row == promotion_row
-            moves.append(Move(self.pos, one_step, self, is_promotion=is_promo))
+            moves.append(Move(self.pos, one_step, self, is_promotion=is_promo, piece_had_moved=self.has_moved))
 
             if not self.has_moved:
                 two_steps = Position(self.pos.row + 2 * dr, self.pos.col)
                 if board.get_piece_at(two_steps) is None:
-                    moves.append(Move(self.pos, two_steps, self))
+                    moves.append(Move(self.pos, two_steps, self, piece_had_moved=self.has_moved))
 
         for dc in [-1, 1]:
             diag_pos = Position(self.pos.row + dr, self.pos.col + dc)
@@ -166,7 +166,7 @@ class Pawn(Piece):
                 target_piece = board.get_piece_at(diag_pos)
                 if target_piece and target_piece.color != self.color:
                     is_promo = diag_pos.row == promotion_row
-                    moves.append(Move(self.pos, diag_pos, self, piece_captured=target_piece, is_promotion=is_promo))
+                    moves.append(Move(self.pos, diag_pos, self, piece_captured=target_piece, is_promotion=is_promo, piece_had_moved=self.has_moved))
                 
                 elif not target_piece and len(board.move_log) > 0:
                     last_move = board.move_log[-1]
@@ -174,6 +174,6 @@ class Pawn(Piece):
                        last_move.end.row == self.pos.row and \
                        last_move.end.col == diag_pos.col and \
                        abs(last_move.start.row - last_move.end.row) == 2:
-                        moves.append(Move(self.pos, diag_pos, self, piece_captured=last_move.piece_moved, is_en_passant=True))
+                        moves.append(Move(self.pos, diag_pos, self, piece_captured=last_move.piece_moved, is_en_passant=True, piece_had_moved=self.has_moved))
                     
         return moves

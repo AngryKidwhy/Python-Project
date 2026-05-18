@@ -46,4 +46,6 @@ class Move:
     is_en_passant: bool = False
     is_castle: bool = False
     is_promotion: bool = False
-    promotion_choice: str = 'Q'  # 'Q', 'R', 'B', 'N'
+    promotion_choice: str = 'Q'
+    piece_had_moved: bool = False
+    rook_had_moved: bool = False
