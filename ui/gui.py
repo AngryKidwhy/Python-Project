@@ -1,6 +1,7 @@
 import pygame
 import os
 import dataclasses
+import platform
 from typing import Optional, Tuple
 from engine.board import Board
 from engine.simple_types import Position, Color, Move
@@ -40,7 +41,28 @@ class ChessGUI:
         color_char = 'w' if piece.color == Color.WHITE else 'b'
         return f"{color_char}{piece.char}"
 
+    def _clear_console(self):
+        if platform.system() == "Windows":
+            os.system("cls")
+        else:
+            os.system("clear")
+
+    def _print_protocol(self):
+        self._clear_console()
+        print("=== ШАХМАТНЫЙ ДВИЖОК ===")
+        print("Управление:")
+        print("- Мышь: выбор и перемещение фигур")
+        print("- Клавиша 'Z': отмена последнего хода (Undo)\n")
+        print("=== ПРОТОКОЛ ПАРТИИ ===")
+        protocol = self.board.get_game_protocol()
+        if protocol:
+            print(protocol)
+        else:
+            print("Партия еще не началась.")
+        print("=======================\n")
+
     def run(self):
+        self._print_protocol()
         running = True
         while running:
             for event in pygame.event.get():
@@ -48,11 +70,7 @@ class ChessGUI:
                     running = False
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_z:
-                        self.board.undo_move()
-                        self.selected_sq = None
-                        self.player_clicks = []
-                        self.valid_moves = []
-                        self.promotion_move = None
+                        self._perform_undo()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         self._handle_click(pygame.mouse.get_pos())
@@ -61,13 +79,19 @@ class ChessGUI:
             self.clock.tick(MAX_FPS)
             pygame.display.flip()
 
+    def _perform_undo(self):
+        """Вызывает логику отката хода и сбрасывает состояния интерфейса."""
+        self.board.undo_move()
+        self.selected_sq = None
+        self.player_clicks = []
+        self.valid_moves = []
+        self.promotion_move = None
+        self._print_protocol()
+
     def _handle_click(self, mouse_pos: Tuple[int, int]):
         """
         Обрабатывает клик мыши, выделяет фигуры и инициирует выполнение хода.
         Также перехватывает клики для меню превращения пешки.
-
-        Args:
-            mouse_pos: Кортеж с координатами клика (x, y) в пикселях.
         """
         if self.board.is_checkmate or self.board.is_stalemate:
             return
@@ -82,6 +106,7 @@ class ChessGUI:
                 
                 final_move = dataclasses.replace(self.promotion_move, promotion_choice=choices[index])
                 self.board.execute_move(final_move)
+                self._print_protocol()
             
             self.promotion_move = None
             self.selected_sq = None
@@ -121,6 +146,7 @@ class ChessGUI:
                     self.promotion_move = move_to_make
                 else:
                     self.board.execute_move(move_to_make)
+                    self._print_protocol()
                     self.selected_sq = None
                     self.player_clicks = []
                     self.valid_moves = []

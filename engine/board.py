@@ -29,37 +29,17 @@ class Board:
         setup_row(Color.WHITE, 7)
     
     def _set_piece(self, piece: Piece):
-        """
-        Устанавливает фигуру на доску в соответствии с ее текущими координатами.
-        
-        Args:
-            piece: Объект фигуры, который необходимо разместить на доске.
-        """
+        """Устанавливает фигуру на доску в соответствии с ее текущими координатами."""
         self._grid[piece.pos.row][piece.pos.col] = piece
 
     def get_piece_at(self, pos: Position) -> Optional[Piece]:
-        """
-        Возвращает фигуру по заданным координатам.
-        
-        Args:
-            pos: Координаты на доске.
-            
-        Returns:
-            Объект фигуры или None, если клетка пуста/вне доски.
-        """
+        """Возвращает фигуру по заданным координатам."""
         if not pos.is_on_board():
             return None
         return self._grid[pos.row][pos.col]
     
     def execute_move(self, move: Move, is_simulation: bool = False):
-        """
-        Выполняет ход на доске: обновляет сетку и внутреннее состояние фигуры.
-        Также проверяет очередь хода.
-        
-        Args:
-            move: Объект хода, содержащий начальную и конечную позицию.
-            is_simulation: Флаг для симуляции хода без проверки конца игры.
-        """
+        """Выполняет ход на доске и обновляет состояние игры."""
         if move.piece_moved is None:
             raise InvalidMoveError("Нет фигуры для выполнения хода")
             
@@ -222,3 +202,13 @@ class Board:
                 self.is_checkmate = True
             else:
                 self.is_stalemate = True
+
+    def get_game_protocol(self) -> str:
+        """Возвращает историю ходов партии в виде отформатированной строки."""
+        protocol = []
+        for i in range(0, len(self.move_log), 2):
+            move_num = i // 2 + 1
+            white_move = self.move_log[i].notation
+            black_move = self.move_log[i+1].notation if i + 1 < len(self.move_log) else ""
+            protocol.append(f"{move_num}. {white_move} {black_move}".strip())
+        return "\n".join(protocol)

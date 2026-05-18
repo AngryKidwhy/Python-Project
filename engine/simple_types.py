@@ -49,3 +49,27 @@ class Move:
     promotion_choice: str = 'Q'
     piece_had_moved: bool = False
     rook_had_moved: bool = False
+
+    @property
+    def notation(self) -> str:
+        """Возвращает строковое представление хода в шахматной нотации."""
+        if self.is_castle:
+            return "O-O" if self.end.col > self.start.col else "O-O-O"
+
+        cols = "abcdefgh"
+        rows = "87654321"
+        start_sq = f"{cols[self.start.col]}{rows[self.start.row]}"
+        end_sq = f"{cols[self.end.col]}{rows[self.end.row]}"
+        
+        piece_char = self.piece_moved.char if self.piece_moved.char != 'P' else ""
+        capture_mark = "x" if self.piece_captured or self.is_en_passant else ""
+        
+        if self.piece_moved.char == 'P' and capture_mark:
+            piece_char = cols[self.start.col]
+
+        base_notation = f"{piece_char}{capture_mark}{end_sq}"
+
+        if self.is_promotion:
+            return f"{base_notation}={self.promotion_choice}"
+            
+        return base_notation
