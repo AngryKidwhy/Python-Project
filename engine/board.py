@@ -9,6 +9,7 @@ class Board:
     def __init__(self):
         self._grid: List[List[Optional[Piece]]] = [[None for i in range(8)] for i in range(8)]
         self.current_turn = Color.WHITE
+        self.move_log: List[Move] = []
         self.setup_board()
     
     def setup_board(self):
@@ -67,6 +68,38 @@ class Board:
         
         move.piece_moved.pos = move.end
         move.piece_moved.has_moved = True
+
+        if move.is_en_passant:
+            self._grid[move.start.row][move.end.col] = None
+
+        if move.is_promotion:
+            if move.promotion_choice == 'R':
+                promoted_piece = Rook(move.piece_moved.color, move.end)
+            elif move.promotion_choice == 'B':
+                promoted_piece = Bishop(move.piece_moved.color, move.end)
+            elif move.promotion_choice == 'N':
+                promoted_piece = Knight(move.piece_moved.color, move.end)
+            else:
+                promoted_piece = Queen(move.piece_moved.color, move.end)
+                
+            promoted_piece.has_moved = True
+            self._grid[move.end.row][move.end.col] = promoted_piece
+
+        if move.is_castle:
+            if move.end.col - move.start.col == 2:
+                rook = self._grid[move.start.row][7]
+                self._grid[move.start.row][7] = None
+                self._grid[move.start.row][move.end.col - 1] = rook
+                rook.pos = Position(move.start.row, move.end.col - 1)
+                rook.has_moved = True
+            else:
+                rook = self._grid[move.start.row][0]
+                self._grid[move.start.row][0] = None
+                self._grid[move.start.row][move.end.col + 1] = rook
+                rook.pos = Position(move.start.row, move.end.col + 1)
+                rook.has_moved = True
+
+        self.move_log.append(move)
         
     def change_turn(self):
         """Переключает очередь хода на противоположный цвет."""

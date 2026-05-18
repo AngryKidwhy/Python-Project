@@ -1,8 +1,9 @@
 import pygame
 import os
+import dataclasses
 from typing import Optional, Tuple
 from engine.board import Board
-from engine.simple_types import Position, Color
+from engine.simple_types import Position, Color, Move
 from engine.exceptions import ResourceLoadError
 from ui.config import WIDTH, HEIGHT, DIMENSION, SQ_SIZE, MAX_FPS, COLOR_LIGHT, COLOR_DARK, COLOR_HIGHLIGHT, COLOR_MOVE_DOT
 
@@ -19,6 +20,8 @@ class ChessGUI:
         self.selected_sq: Optional[Position] = None
         self.player_clicks: list[Position] = []
         self.valid_moves = []
+        
+        self.promotion_move: Optional[Move] = None
         
         self._load_images()
 
@@ -55,12 +58,31 @@ class ChessGUI:
     def _handle_click(self, mouse_pos: Tuple[int, int]):
         """
         Обрабатывает клик мыши, выделяет фигуры и инициирует выполнение хода.
+        Также перехватывает клики для меню превращения пешки.
 
         Args:
             mouse_pos: Кортеж с координатами клика (x, y) в пикселях.
         """
-        col = mouse_pos[0] // SQ_SIZE
-        row = mouse_pos[1] // SQ_SIZE
+        x, y = mouse_pos
+
+        if self.promotion_move:
+            menu_rect = pygame.Rect(WIDTH // 2 - 2 * SQ_SIZE, HEIGHT // 2 - SQ_SIZE // 2, 4 * SQ_SIZE, SQ_SIZE)
+            if menu_rect.collidepoint(x, y):
+                index = (x - menu_rect.x) // SQ_SIZE
+                choices = ['Q', 'R', 'B', 'N']
+                
+                final_move = dataclasses.replace(self.promotion_move, promotion_choice=choices[index])
+                self.board.execute_move(final_move)
+                self.board.change_turn()
+            
+            self.promotion_move = None
+            self.selected_sq = None
+            self.player_clicks = []
+            self.valid_moves = []
+            return
+
+        col = x // SQ_SIZE
+        row = y // SQ_SIZE
         clicked_pos = Position(row, col)
 
         if self.selected_sq == clicked_pos:
@@ -87,17 +109,24 @@ class ChessGUI:
             move_to_make = next((m for m in self.valid_moves if m.end == end_pos), None)
             
             if move_to_make:
-                self.board.execute_move(move_to_make)
-                self.board.change_turn()
-            
-            self.selected_sq = None
-            self.player_clicks = []
-            self.valid_moves = []
+                if move_to_make.is_promotion:
+                    self.promotion_move = move_to_make
+                else:
+                    self.board.execute_move(move_to_make)
+                    self.board.change_turn()
+                    self.selected_sq = None
+                    self.player_clicks = []
+                    self.valid_moves = []
+            else:
+                self.selected_sq = None
+                self.player_clicks = []
+                self.valid_moves = []
 
     def _draw_state(self):
         self._draw_board()
         self._draw_highlights()
         self._draw_pieces()
+        self._draw_promotion_menu()
 
     def _draw_board(self):
         colors = [COLOR_LIGHT, COLOR_DARK]
@@ -130,3 +159,21 @@ class ChessGUI:
                     piece_name = self._get_piece_name(piece)
                     rect = pygame.Rect(col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE)
                     self.screen.blit(self.images[piece_name], rect)
+
+    def _draw_promotion_menu(self):
+        """Отрисовывает поверх доски меню выбора фигуры для превращения пешки."""
+        if self.promotion_move:
+            menu_rect = pygame.Rect(WIDTH // 2 - 2 * SQ_SIZE, HEIGHT // 2 - SQ_SIZE // 2, 4 * SQ_SIZE, SQ_SIZE)
+            
+            pygame.draw.rect(self.screen, pygame.Color("white"), menu_rect)
+            pygame.draw.rect(self.screen, pygame.Color("black"), menu_rect, 2)
+            
+            color_char = 'w' if self.promotion_move.piece_moved.color == Color.WHITE else 'b'
+            pieces_to_choose = ['Q', 'R', 'B', 'N']
+            
+            for i, p_char in enumerate(pieces_to_choose):
+                img = self.images[f"{color_char}{p_char}"]
+                rect = pygame.Rect(menu_rect.x + i * SQ_SIZE, menu_rect.y, SQ_SIZE, SQ_SIZE)
+                self.screen.blit(img, rect)
+                if i > 0:
+                    pygame.draw.line(self.screen, pygame.Color("black"), (rect.x, rect.y), (rect.x, rect.y + SQ_SIZE), 2)

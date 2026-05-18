@@ -43,3 +43,7 @@ class Move:
     end: Position
     piece_moved: 'Piece'
     piece_captured: Optional['Piece'] = None
+    is_en_passant: bool = False
+    is_castle: bool = False
+    is_promotion: bool = False
+    promotion_choice: str = 'Q'  # 'Q', 'R', 'B', 'N'
