@@ -67,3 +67,9 @@ python main.py
 ```bash
 python -m pytest -v tests/
 ```
+
+
+**Запуск докера***
+```bash
+docker run --rm chess-engine python -m pytest -v tests/
+```
