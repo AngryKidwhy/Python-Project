@@ -60,3 +60,10 @@ pip install -r requirements.txt
 ```bash
 python main.py
 ```
+
+---
+
+**Запустить тесты**
+```bash
+python -m pytest -v tests/
+```
